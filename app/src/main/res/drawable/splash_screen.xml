@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item  android:drawable="@color/watcha_color" />
+
+    <item>
+        <bitmap
+            android:src="@drawable/giphy_splash_screen"
+            android:gravity="center"/>
+    </item>
+
+</layer-list>
