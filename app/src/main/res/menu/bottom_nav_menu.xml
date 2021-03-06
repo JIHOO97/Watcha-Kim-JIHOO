@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/bottom_nav_trending"
+        android:title="Trending"
+        android:icon="@drawable/bottom_nav_trending_foreground" />
+    <item android:id="@+id/bottom_nav_heart"
+        android:title="Fav"
+        android:icon="@drawable/bottom_nav_heart_foreground" />
+</menu>
