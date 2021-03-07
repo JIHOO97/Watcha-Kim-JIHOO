@@ -59,7 +59,7 @@ dependencies {
     // simple-json
     implementation 'com.googlecode.json-simple:json-simple:1.1'
 
-    // glie
+    // glide
     implementation "com.github.bumptech.glide:glide:$glideVersion"
     annotationProcessor "com.github.bumptech.glide:compiler:$glideVersion"
 
