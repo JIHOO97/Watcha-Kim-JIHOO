@@ -39,13 +39,14 @@ public class VideoPlayerViewAdapter extends RecyclerView.Adapter<VideoPlayerView
     public VideoPlayerViewAdapter(ArrayList<String> gifUrls, Context context) {
         this.gifUrls = gifUrls;
         this.context = context;
-        this.sharedPreferences = context.getSharedPreferences("giphy", Context.MODE_PRIVATE);
+        if(context != null) {
+            this.sharedPreferences = context.getSharedPreferences("giphy", Context.MODE_PRIVATE);
+        }
     }
 
     @NonNull
     @Override
     public VideoPlayerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Log.d(TAG, "onCreateViewHolder, viewType is: " + viewType);
         return new VideoPlayerViewHolder(
                 LayoutInflater.from(parent.getContext()).inflate(R.layout.item_list, parent, false)
         );
@@ -53,8 +54,6 @@ public class VideoPlayerViewAdapter extends RecyclerView.Adapter<VideoPlayerView
 
     @Override
     public void onBindViewHolder(@NonNull VideoPlayerViewHolder holder, int position) {
-        Log.d(TAG, "onBindViewHolder, cur position is: " + position);
-
         // Glide option
         RequestOptions requestOptions = new RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -107,7 +106,10 @@ public class VideoPlayerViewAdapter extends RecyclerView.Adapter<VideoPlayerView
 
     @Override
     public int getItemCount() {
-        return gifUrls.size();
+        if(gifUrls != null) {
+            return gifUrls.size();
+        }
+        return 0;
     }
 
     @Override
