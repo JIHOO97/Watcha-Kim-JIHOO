@@ -47,20 +47,17 @@ dependencies {
     // Recyclerview
     implementation "com.android.support:recyclerview-v7"
 
-    // ExoPlayer
-    implementation 'com.google.android.exoplayer:exoplayer:2.9.0' // 2.9.0 has min sdk 26
-
-    implementation "com.github.bumptech.glide:glide"
-    annotationProcessor "com.github.bumptech.glide:compiler"
-
     // okhttp3
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
 
-    // simple-json
-    implementation 'com.googlecode.json-simple:json-simple:1.1'
-
     // glide
-    implementation "com.github.bumptech.glide:glide:$glideVersion"
+    implementation ("com.github.bumptech.glide:glide:$glideVersion") {
+        exclude group: "com.android.support"
+    }
+    implementation ("com.github.bumptech.glide:glide:$glideVersion@aar") {
+        transitive = true
+    }
+    annotationProcessor 'androidx.annotation:annotation:1.1.0'
     annotationProcessor "com.github.bumptech.glide:compiler:$glideVersion"
 
     // cardview
@@ -71,5 +68,8 @@ dependencies {
 
     // swipe refresh layout library
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+
+    // volley
+    implementation 'com.android.volley:volley:1.2.0'
 
 }

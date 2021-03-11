@@ -1,14 +1,10 @@
 package com.jihoo.watcha.Fragments;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
@@ -19,32 +15,29 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.jihoo.watcha.R;
-import com.jihoo.watcha.VideoPlayerViewAdapter;
+import com.jihoo.watcha.TrendingAdapter;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class TrendingFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener{
 
     private static final String apiUrl = "https://api.giphy.com/v1/gifs/trending?api_key=erNnDilHipb9HQaxIXI1i6piBe4FVzu6&limit=1000";
     private static final int NUM_COLUMNS = 2;
-    private static final String TAG = "simpleTag";
 
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private ArrayList<String> urls;
     private ProgressBar mLoadingBar;
+    private RequestQueue mQueue;
 
     @Nullable
     @Override
@@ -65,18 +58,55 @@ public class TrendingFragment extends Fragment implements SwipeRefreshLayout.OnR
                 android.R.color.holo_orange_dark,
                 android.R.color.holo_blue_dark);
 
-        FetchAPI api = new FetchAPI(this);
-        api.execute(apiUrl);
+        urls = new ArrayList<>();
+
+        // first add redundant adapter
+        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, LinearLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(staggeredGridLayoutManager);
+        TrendingAdapter trendingAdapter = new TrendingAdapter(urls, getActivity());
+        mRecyclerView.setAdapter(trendingAdapter);
+
+        mQueue = Volley.newRequestQueue(getActivity());
+        init();
     }
 
+    private void init() {
+        // make a volley request
+        JsonObjectRequest request = new JsonObjectRequest(com.android.volley.Request.Method.GET, apiUrl, null,
+                new com.android.volley.Response.Listener<org.json.JSONObject>() {
+                    @Override
+                    public void onResponse(org.json.JSONObject response) {
+                        try {
+                            JSONArray jsonArray = response.getJSONArray("data");
 
+                            for(int i = 0; i < jsonArray.length(); ++i) {
+                                JSONObject tempObject = jsonArray.getJSONObject(i);
+                                JSONObject imagesObject = tempObject.getJSONObject("images");
+                                JSONObject urlObject = imagesObject.getJSONObject("fixed_height_downsampled");
+                                String gifUrl = urlObject.getString("url");
+                                urls.add(gifUrl);
+                            }
+                            initRecyclerView(urls);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
 
-    private void initRecyclerView(ArrayList<String> urls) throws ParseException, InterruptedException {
+        mQueue.add(request);
+    }
+
+    private void initRecyclerView(ArrayList<String> urls) {
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, LinearLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(staggeredGridLayoutManager);
 
-        VideoPlayerViewAdapter videoPlayerViewAdapter = new VideoPlayerViewAdapter(urls, getActivity());
-        mRecyclerView.setAdapter(videoPlayerViewAdapter);
+        TrendingAdapter trendingAdapter = new TrendingAdapter(urls, getActivity());
+        mRecyclerView.setAdapter(trendingAdapter);
 
         mSwipeRefreshLayout.setRefreshing(false);
         mLoadingBar.setVisibility(View.GONE);
@@ -84,74 +114,6 @@ public class TrendingFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     @Override
     public void onRefresh() {
-        try {
-            initRecyclerView(urls);
-        } catch (ParseException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // fetch url using GIPHY API
-    public static class FetchAPI extends AsyncTask<String, String, ArrayList<String>> {
-        // to prevent memory leak
-        private final WeakReference<TrendingFragment> activityWeakReference;
-
-        FetchAPI(TrendingFragment activity) {
-            activityWeakReference = new WeakReference<TrendingFragment>(activity);
-        }
-
-        @Override
-        protected ArrayList<String> doInBackground(String... strings) {
-            TrendingFragment activity = activityWeakReference.get();
-            if(activity == null) return null;
-            activity.urls = new ArrayList<>();
-
-            OkHttpClient client = new OkHttpClient();
-
-            Request request = new Request.Builder()
-                    .url(strings[0])
-                    .build();
-
-            String resBody = null;
-
-            try(Response response = client.newCall(request).execute()) {
-                resBody = response.body().string();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            JSONParser parser = new JSONParser();
-            JSONObject jsonObject = null;
-            try {
-                jsonObject = (JSONObject) parser.parse(resBody);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-
-            JSONArray resArray = (JSONArray) jsonObject.get("data");
-            for(int i = 0; i < resArray.size(); ++i) {
-                JSONObject tempObject = (JSONObject) resArray.get(i);
-                JSONObject imagesObject = (JSONObject) tempObject.get("images");
-                JSONObject originalObject = (JSONObject) imagesObject.get("fixed_height_downsampled");
-                String gifUrl = originalObject.get("url").toString();
-                activity.urls.add(gifUrl);
-            }
-
-            return activity.urls;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<String> strings) {
-            super.onPostExecute(strings);
-
-            TrendingFragment activity = activityWeakReference.get();
-            if(activity == null) return;
-            try {
-                activity.initRecyclerView(activity.urls);
-            } catch (ParseException | InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
+        initRecyclerView(urls);
     }
 }

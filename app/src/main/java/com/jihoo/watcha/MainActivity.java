@@ -3,7 +3,6 @@ package com.jihoo.watcha;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
@@ -11,7 +10,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.jihoo.watcha.Fragments.FavFragment;
@@ -19,15 +17,12 @@ import com.jihoo.watcha.Fragments.TrendingFragment;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = "simpleTag";
     private static final String trendingFragTag = "trendingFragment";
     private static final String favFragTag = "favouriteFragment";
 
     private boolean isTrendingFragVisible = true;
-    private SharedPreferences sharedPreferences;
-    private BottomNavigationView bottomNavigationView;
-    private TrendingFragment trendingFragment = new TrendingFragment();
-    private FavFragment favouriteFragment = new FavFragment();
+
+    public static SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -43,8 +38,12 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setIcon(R.drawable.giphy_icon);
 
+        // instantiate fragments
+        TrendingFragment trendingFragment = new TrendingFragment();
+        FavFragment favouriteFragment = new FavFragment();
+
         // customize bottom navigation view
-        bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setOnNavigationItemSelectedListener(navListener);
 
         sharedPreferences = getSharedPreferences("giphy", Context.MODE_PRIVATE);
@@ -57,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // navigate bottomnavigationview when selected (trend or fav)
-    private BottomNavigationView.OnNavigationItemSelectedListener navListener =
+    private final BottomNavigationView.OnNavigationItemSelectedListener navListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {
                 @Override
                 public boolean onNavigationItemSelected(@NonNull MenuItem item) {
